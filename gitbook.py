@@ -18,7 +18,6 @@ BASE_URL = 'https://feisky.gitbooks.io/kubernetes/content/'
 
 CONTENT_LIST = []
 
-
 async def request(url, headers, timeout=None):
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=headers, timeout=timeout) as resp:
@@ -33,7 +32,6 @@ async def gettext(index, path):
     '''
     return path's html 
     '''
-
     global CONTENT_LIST
 
     url = urljoin(BASE_URL, path)
@@ -62,19 +60,6 @@ def get_all_css():
     '''
     return all css 
     '''
-    # all_css = [
-    #     BASE_URL+'gitbook/style.css',
-    #     BASE_URL+'gitbook/gitbook-plugin-page-toc/page-toc.css',
-    #     BASE_URL+'gitbook/gitbook-plugin-search-plus/search.css',
-    #     BASE_URL+'gitbook/gitbook-plugin-tbfed-pagefooter/footer.css',
-    #     BASE_URL+'gitbook/gitbook-plugin-comment/plugin.css',
-    #     BASE_URL+'gitbook/gitbook-plugin-fontsettings/website.css',
-    #     BASE_URL+'gitbook/gitbook-plugin-highlight/website.css',
-    # ]
-    # css_text=''
-    # for _ in all_css:
-    #     css_text+=requests.get(_,headers=header, proxies=proxies).text
-    # return css_text
     with open('gitbook.css', 'r') as f:
         return f.read()
 
