@@ -13,6 +13,8 @@ async def request(url, headers, timeout=None):
         async with session.get(url, headers=headers, timeout=timeout) as resp:
             return await resp.text()
 
+def local_ua_stylesheets(self):
+    return [CSS('./html5_ua.css')]
 
 class Gitbook2PDF():
     def __init__(self, base_url, fname=None):
@@ -22,6 +24,7 @@ class Gitbook2PDF():
             'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
         }
         self.content_list = []
+        HTML._ua_stylesheets=local_ua_stylesheets
 
     def run(self):
         content_urls = self.collect_toc(self.base_url)
@@ -68,9 +71,11 @@ class Gitbook2PDF():
         self.content_list[index] = text
 
     def write_pdf(self, fname, html_text, css_text):
-        tmphtml = HTML(string=html_text)
+        lcoalHTML = HTML(string=html_text)
+        with open('test.html','w+') as f:
+            f.write(html_text)
         tmpcss = CSS(string=css_text)
-        tmphtml.write_pdf(fname, stylesheets=[tmpcss])
+        #tmphtml.write_pdf(fname, stylesheets=[tmpcss])
 
     def get_all_css(self):
         with open('gitbook.css', 'r') as f:
