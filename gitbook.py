@@ -25,6 +25,8 @@ class Gitbook2PDF():
 
     def run(self):
         content_urls = self.collect_toc(self.base_url)
+        # 去重
+        content_urls = list( dict.fromkeys(content_urls) )
         self.content_list = [None for _ in range(len(content_urls))]
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.crawl_main_content(content_urls))
