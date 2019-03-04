@@ -4,9 +4,25 @@ import asyncio
 import aiohttp
 import weasyprint
 import datetime
+import os
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from lxml import etree
+
+
+async def request(url, headers, timeout=None):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, headers=headers, timeout=timeout) as resp:
+            return await resp.text()
+
+
+def local_ua_stylesheets(self):
+    return [weasyprint.CSS('./html5_ua.css')]
+
+
+def load_gitbook_css():
+    with open('gitbook.css', 'r') as f:
+        return f.read()
 
 
 class HtmlGenerator():
@@ -39,15 +55,7 @@ class HtmlGenerator():
     def output(self):
         full_html = self.html_start + self.title_ele + "".join(self.meta_list) \
                     + "<body>" + self.body + self.html_end
-        with open('test.html', 'w', encoding='utf-8') as f:
-            f.write(full_html)
         return full_html
-
-
-async def request(url, headers, timeout=None):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, headers=headers, timeout=timeout) as resp:
-            return await resp.text()
 
 
 class Gitbook2PDF():
@@ -63,6 +71,7 @@ class Gitbook2PDF():
         self.meta_list.append(
             ('generator', 'gitbook2pdf')
         )
+        weasyprint.HTML._ua_stylesheets = local_ua_stylesheets
 
     def run(self):
         content_urls = self.collect_urls_and_metadata(self.base_url)
@@ -80,7 +89,7 @@ class Gitbook2PDF():
         for key, value in self.meta_list:
             html_g.add_meta_data(key, value)
         html_text = html_g.output()
-        css_text = self.get_all_css()
+        css_text = load_gitbook_css()
 
         self.write_pdf(self.fname, html_text, css_text)
 
@@ -123,16 +132,8 @@ class Gitbook2PDF():
     def write_pdf(self, fname, html_text, css_text):
         tmphtml = weasyprint.HTML(string=html_text)
         tmpcss = weasyprint.CSS(string=css_text)
+        fname = os.path.join(os.path.dirname(__file__), 'output', fname)
         tmphtml.write_pdf(fname, stylesheets=[tmpcss])
-
-        # html = weasyprint.HTML(string=html_text)
-        # doc = html.render(
-        #     stylesheets=[css_text]
-        # )
-
-    def get_all_css(self):
-        with open('gitbook.css', 'r') as f:
-            return f.read()
 
     def collect_urls_and_metadata(self, start_url):
         text = requests.get(start_url, headers=self.headers).text
