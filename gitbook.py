@@ -58,6 +58,16 @@ class HtmlGenerator():
         return full_html
 
 
+def level(num):
+    '''
+    return 'level'+num
+    '''
+    return 'level'+str(num)
+
+
+
+
+
 class Gitbook2PDF():
     def __init__(self, base_url, fname=None):
         self.fname = fname
@@ -66,8 +76,8 @@ class Gitbook2PDF():
             'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
         }
         self.content_list = []
+        self.heads={'h1':1,'h2':2,'h3':3,'h4':4,'h5':5,'h6':6}
         self.meta_list = []
-
         self.meta_list.append(
             ('generator', 'gitbook2pdf')
         )
@@ -93,6 +103,7 @@ class Gitbook2PDF():
 
         self.write_pdf(self.fname, html_text, css_text)
 
+
     async def crawl_main_content(self, content_urls):
         tasks = []
         for index, url in enumerate(content_urls):
@@ -102,7 +113,7 @@ class Gitbook2PDF():
         await asyncio.gather(*tasks)
         print("crawl : all done!")
 
-    async def gettext(self, index, url):
+    async def gettext(self, index, url,baselevel=0):
         '''
         return path's html
         '''
@@ -115,16 +126,19 @@ class Gitbook2PDF():
             metatext = await request(url, self.headers)
 
         tree = etree.HTML(metatext)
-
         try:
-            context = tree.xpath('//section[@class="normal markdown-section"]')[0]
-
+            if tree.xpath('//section[@class="normal markdown-section"]'):
+                context = tree.xpath('//section[@class="normal markdown-section"]')[0]
+            elif tree.xpath('//section[@class="normal"]'):
+                context = tree.xpath('//section[@class="normal"]')[0]
             if context.find('footer'):
                 context.remove(context.find('footer'))
+            for head in self.heads:
+                for title in context.xpath(head):
+                    title.attrib['class'] = level(self.heads[head]+baselevel)
             text = etree.tostring(context).decode()
             text = html.unescape(text)
             print("done : ", url)
-
             self.content_list[index] = text
         except IndexError:
             print('faild at : ', url, ' maybe content is empty?')
@@ -191,4 +205,4 @@ class Gitbook2PDF():
 
 
 if __name__ == '__main__':
-    Gitbook2PDF("https://jimmysong.io/kubernetes-handbook/").run()
+    Gitbook2PDF("http://self-publishing.ebookchain.org").run()
