@@ -5,7 +5,6 @@ import aiohttp
 import weasyprint
 import datetime
 import os
-import re
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from lxml import etree
@@ -83,22 +82,22 @@ class Gitbook2PDF():
 
     def run(self):
         content_urls = self.collect_urls_and_metadata(self.base_url)
-        # self.content_list = ["" for _ in range(len(content_urls))]
-        # loop = asyncio.get_event_loop()
-        # loop.run_until_complete(self.crawl_main_content(content_urls))
-        # loop.close()
-        #
-        # # main body
-        # body = "".join(self.content_list)
-        # # 使用HtmlGenerator类来生成HTML
-        # html_g = HtmlGenerator()
-        # html_g.add_body(body)
-        # for key, value in self.meta_list:
-        #     html_g.add_meta_data(key, value)
-        # html_text = html_g.output()
-        # css_text = load_gitbook_css()
-        #
-        # self.write_pdf(self.fname, html_text, css_text)
+        self.content_list = ["" for _ in range(len(content_urls))]
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(self.crawl_main_content(content_urls))
+        loop.close()
+
+        # main body
+        body = "".join(self.content_list)
+        # 使用HtmlGenerator类来生成HTML
+        html_g = HtmlGenerator()
+        html_g.add_body(body)
+        for key, value in self.meta_list:
+            html_g.add_meta_data(key, value)
+        html_text = html_g.output()
+        css_text = load_gitbook_css()
+
+        self.write_pdf(self.fname, html_text, css_text)
 
     async def crawl_main_content(self, content_urls):
         tasks = []
@@ -139,15 +138,12 @@ class Gitbook2PDF():
                 context = tree.xpath('//section[@class="normal"]')[0]
             if context.find('footer'):
                 context.remove(context.find('footer'))
-
             for header in self.heads:
                 if context.xpath(header):
                     context.xpath(header)[0].attrib['class'] = get_level_class(level)
                     context.xpath(header)[0].text = title
                     break
-            # for head in self.heads:
-            #     for title in context.xpath(head):
-            #         title.attrib['class'] = level(self.heads[head] + baselevel)
+
             text = etree.tostring(context).decode()
             text = html.unescape(text)
             print("done : ", url)
