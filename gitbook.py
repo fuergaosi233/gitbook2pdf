@@ -16,6 +16,16 @@ async def request(url, headers, timeout=None):
 def local_ua_stylesheets(self):
     return [CSS('./html5_ua.css')]
 
+def level(num):
+    '''
+    return 'level'+num
+    '''
+    return 'level'+str(num)
+
+
+
+
+
 class Gitbook2PDF():
     def __init__(self, base_url, fname=None):
         self.fname = fname
@@ -24,8 +34,9 @@ class Gitbook2PDF():
             'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
         }
         self.content_list = []
+        self.heads={'h1':1,'h2':2,'h3':3,'h4':4,'h5':5,'h6':6}
         HTML._ua_stylesheets=local_ua_stylesheets
-
+    
     def run(self):
         content_urls = self.collect_toc(self.base_url)
         # 去重
@@ -38,6 +49,7 @@ class Gitbook2PDF():
         csstext = self.get_all_css()
         self.write_pdf(self.fname, all_html, csstext)
 
+
     async def crawl_main_content(self, content_urls):
         tasks = []
         for index, url in enumerate(content_urls):
@@ -47,7 +59,7 @@ class Gitbook2PDF():
         await asyncio.gather(*tasks)
         print("crawl : all done!")
 
-    async def gettext(self, index, url):
+    async def gettext(self, index, url,baselevel=0):
         '''
         return path's html
         '''
@@ -60,10 +72,17 @@ class Gitbook2PDF():
             metatext = await request(url, self.headers)
 
         tree = etree.HTML(metatext)
-        context = tree.xpath('//section[@class="normal markdown-section"]')[0]
-
+        if tree.xpath('//section[@class="normal markdown-section"]'):
+            context = tree.xpath('//section[@class="normal markdown-section"]')[0]
+        elif tree.xpath('//section[@class="normal"]'):
+            context = tree.xpath('//section[@class="normal"]')[0]
+        else:
+            raise Exception('no context')
         if context.find('footer'):
             context.remove(context.find('footer'))
+        for head in self.heads:
+            for title in context.xpath(head):
+                title.attrib['class'] = level(self.heads[head]+baselevel)
         text = etree.tostring(context).decode()
         text = html.unescape(text)
         print("done : ", url)
@@ -71,11 +90,11 @@ class Gitbook2PDF():
         self.content_list[index] = text
 
     def write_pdf(self, fname, html_text, css_text):
-        lcoalHTML = HTML(string=html_text)
+        tmphtml = HTML(string=html_text)
         with open('test.html','w+') as f:
             f.write(html_text)
         tmpcss = CSS(string=css_text)
-        #tmphtml.write_pdf(fname, stylesheets=[tmpcss])
+        tmphtml.write_pdf(fname, stylesheets=[tmpcss])
 
     def get_all_css(self):
         with open('gitbook.css', 'r') as f:
@@ -87,7 +106,8 @@ class Gitbook2PDF():
 
         if not self.fname:
             # 如果不提供输出文件名的话，抓取html标题为文件名
-            self.fname = soup.find('title').text
+            self.fname = soup.find('title').text+'.pdf'
+            
 
         lis = soup.find('ul', class_='summary').find_all('li')
 
@@ -106,4 +126,4 @@ class Gitbook2PDF():
 
 
 if __name__ == '__main__':
-    Gitbook2PDF("https://hit-alibaba.github.io/interview/").run()
+    Gitbook2PDF("http://self-publishing.ebookchain.org").run()
