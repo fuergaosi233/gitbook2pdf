@@ -146,7 +146,7 @@ class Gitbook2PDF():
                 title = title_ele.text
                 if '·' in title:
                     title = title.split('·')[1]
-                title = title.replace(' ', '')
+                title = title.replace(' ', '').replace('/', '-')
                 self.fname = title + '.pdf'
         self.meta_list.append(
             ('title', self.fname.replace('.pdf', ''))
@@ -191,4 +191,4 @@ class Gitbook2PDF():
 
 
 if __name__ == '__main__':
-    Gitbook2PDF("https://eastlakeside.gitbooks.io/interpy-zh/content/").run()
+    Gitbook2PDF("https://jimmysong.io/kubernetes-handbook/").run()
