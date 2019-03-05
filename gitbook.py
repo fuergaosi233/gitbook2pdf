@@ -134,8 +134,9 @@ class Gitbook2PDF():
             if context.find('footer'):
                 context.remove(context.find('footer'))
             for head in self.heads:
-                for title in context.xpath(head):
-                    title.attrib['class'] = level(self.heads[head]+baselevel)
+                if context.xpath(head):
+                    context.xpath(head)[0].attrib['class'] = level(self.heads[head]+baselevel)
+                    break
             text = etree.tostring(context).decode()
             text = html.unescape(text)
             print("done : ", url)
