@@ -216,7 +216,7 @@ class Gitbook2PDF():
                 continue
 
             if 'header' in element_class:
-                title = li.text.replace('\n', '').replace(' ', '')
+                title = li.text.strip()
                 data_level = li.attrs.get('data-level')
                 level = len(data_level.split('.')) if data_level else 1
                 content_urls.append({
@@ -231,7 +231,7 @@ class Gitbook2PDF():
                 if 'data-path' in li.attrs:
                     data_path = li.attrs.get('data-path')
                     url = urljoin(start_url, data_path)
-                    title = li.find('a').text.replace('\n', '').replace(' ', '')
+                    title = li.find('a').text.strip()
                     if url not in found_urls:
                         content_urls.append(
                             {
@@ -247,10 +247,10 @@ class Gitbook2PDF():
 
                     # 一种获取方式 : http://self-publishing.ebookchain.org/
                     if li.find('span'):
-                        title = li.find('span').text.replace('\n', '').replace(' ', '')
+                        title = li.find('span').text.strip()
                     elif len(li.contents) == 1:
                         # 只有一个子节点，也就是文字
-                        title = li.text.replace('\n', '').replace(' ', '')
+                        title = li.text.strip()
 
                     content_urls.append({
                         'url': "",
