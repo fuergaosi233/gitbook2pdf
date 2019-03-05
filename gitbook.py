@@ -5,9 +5,11 @@ import aiohttp
 import weasyprint
 import datetime
 import os
+import re
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from lxml import etree
+import sys
 
 
 async def request(url, headers, timeout=None):
@@ -25,8 +27,15 @@ def load_gitbook_css():
         return f.read()
 
 
+def get_level_class(num):
+    '''
+    return 'level'+num
+    '''
+    return 'level' + str(num)
+
+
 class HtmlGenerator():
-    def __init__(self):
+    def __init__(self, base_url):
         self.html_start = """
 <!DOCTYPE html>
 <html lang="en">
@@ -41,6 +50,7 @@ class HtmlGenerator():
 </body>
 </html>
 """
+        self.base_url = base_url
 
     def add_meta_data(self, key, value):
         meta_string = "<meta name={key} content={value}>".format_map({
@@ -52,17 +62,22 @@ class HtmlGenerator():
     def add_body(self, body):
         self.body = body
 
+    def srcrepl(self, match):
+        "Return the file contents with paths replaced"
+        absolutePath = self.base_url
+        return "<" + match.group(1) + match.group(2) + "=" + "\"" + absolutePath + match.group(3) + match.group(
+            4) + "\"" + ">"
+
+    def relative_to_absolute_path(self, origin_text):
+        p = re.compile(r"<(.*?)(src|href)=\"(?!http)(.*?)\"(.*?)>")
+        updated_text = p.sub(self.srcrepl, origin_text)
+        return updated_text
+
     def output(self):
         full_html = self.html_start + self.title_ele + "".join(self.meta_list) \
                     + "<body>" + self.body + self.html_end
-        return full_html
 
-
-def get_level_class(num):
-    '''
-    return 'level'+num
-    '''
-    return 'level' + str(num)
+        return self.relative_to_absolute_path(full_html)
 
 
 class Gitbook2PDF():
@@ -90,7 +105,7 @@ class Gitbook2PDF():
         # main body
         body = "".join(self.content_list)
         # 使用HtmlGenerator类来生成HTML
-        html_g = HtmlGenerator()
+        html_g = HtmlGenerator(self.base_url)
         html_g.add_body(body)
         for key, value in self.meta_list:
             html_g.add_meta_data(key, value)
@@ -154,8 +169,8 @@ class Gitbook2PDF():
     def write_pdf(self, fname, html_text, css_text):
         tmphtml = weasyprint.HTML(string=html_text)
         tmpcss = weasyprint.CSS(string=css_text)
-        fname = os.path.join(os.path.dirname(__file__), 'output', fname)
-        htmlname = os.path.join(os.path.dirname(__file__), 'output', fname).replace('.pdf', '.html')
+        fname = "./output/" + fname
+        htmlname = fname.replace('.pdf', '.html')
         with open(htmlname, 'w', encoding='utf-8') as f:
             f.write(html_text)
         tmphtml.write_pdf(fname, stylesheets=[tmpcss])
@@ -212,7 +227,7 @@ class Gitbook2PDF():
                 continue
 
             if 'header' in element_class:
-                title = li.text.strip()
+                title = ' '.join(li.text.split())
                 data_level = li.attrs.get('data-level')
                 level = len(data_level.split('.')) if data_level else 1
                 content_urls.append({
@@ -227,7 +242,7 @@ class Gitbook2PDF():
                 if 'data-path' in li.attrs:
                     data_path = li.attrs.get('data-path')
                     url = urljoin(start_url, data_path)
-                    title = li.find('a').text.strip()
+                    title = ' '.join(li.find('a').text.split())
                     if url not in found_urls:
                         content_urls.append(
                             {
@@ -243,10 +258,10 @@ class Gitbook2PDF():
 
                     # 一种获取方式 : http://self-publishing.ebookchain.org/
                     if li.find('span'):
-                        title = li.find('span').text.strip()
+                        title = ' '.join(li.find('span').text.split())
                     elif len(li.contents) == 1:
                         # 只有一个子节点，也就是文字
-                        title = li.text.strip()
+                        title = ' '.join(li.text.split())
 
                     content_urls.append({
                         'url': "",
@@ -258,5 +273,7 @@ class Gitbook2PDF():
 
 
 if __name__ == '__main__':
-    Gitbook2PDF("http://self-publishing.ebookchain.org").run()
+    # Gitbook2PDF("http://self-publishing.ebookchain.org").run()
     # Gitbook2PDF("https://feisky.xyz/kubernetes-handbook/").run()
+    url = sys.argv[1]
+    Gitbook2PDF(url).run()
