@@ -20,6 +20,8 @@ async def request(url, headers, timeout=None):
 
 def local_ua_stylesheets(self):
     return [weasyprint.CSS('./html5_ua.css')]
+
+
 # weasyprint's monkey patch for level
 
 def load_gitbook_css():
@@ -78,12 +80,13 @@ class HtmlGenerator():
                     + "<body>" + self.body + self.html_end
         return self.relative_to_absolute_path(full_html)
 
+
 class ChapterParser():
-    def __init__(self,original,baselevel=0):
-        self.heads={'h1':1,'h2':2,'h3':3,'h4':4,'h5':5,'h6':6}
+    def __init__(self, original, baselevel=0):
+        self.heads = {'h1': 1, 'h2': 2, 'h3': 3, 'h4': 4, 'h5': 5, 'h6': 6}
         self.original = original
         self.baselevel = baselevel
-        self.parser()
+
     def parser(self):
         tree = ET.HTML(self.original)
         if tree.xpath('//section[@class="normal markdown-section"]'):
@@ -92,15 +95,16 @@ class ChapterParser():
             context = tree.xpath('//section[@class="normal"]')[0]
         if context.find('footer'):
             context.remove(context.find('footer'))
-        context=self.parsehead(context)
-        self.text = html.unescape(ET.tostring(context).decode())
+        context = self.parsehead(context)
+        return html.unescape(ET.tostring(context).decode())
 
-    def parsehead(self,context):
+    def parsehead(self, context):
         def level(num):
-            return 'level'+str(num)
+            return 'level' + str(num)
+
         for head in self.heads:
             if context.xpath(head):
-                context.xpath(head)[0].attrib['class'] = level(self.heads[head]+self.baselevel)
+                context.xpath(head)[0].attrib['class'] = level(self.heads[head] + self.baselevel)
                 self.head = context.xpath(head)[0].attrib['id']
                 break
         return context
@@ -143,7 +147,7 @@ class Gitbook2PDF():
         tasks = []
         for index, urlobj in enumerate(content_urls):
             if urlobj['url']:
-                tasks.append(self.gettext(index, urlobj['url'], urlobj['level'], urlobj['title']))
+                tasks.append(self.gettext(index, urlobj['url'], urlobj['level']))
             else:
                 tasks.append(self.getext_fake(index, urlobj['title'], urlobj['level']))
         await asyncio.gather(*tasks)
@@ -158,7 +162,7 @@ class Gitbook2PDF():
         })
         self.content_list[index] = string
 
-    async def gettext(self, index, url, level, title):
+    async def gettext(self, index, url, level):
         '''
         return path's html
         '''
@@ -170,7 +174,7 @@ class Gitbook2PDF():
             print("retrying : ", url)
             metatext = await request(url, self.headers)
         try:
-            text = ChapterParser(metatext).text
+            text = ChapterParser(metatext, level).parser()
             print("done : ", url)
             self.content_list[index] = text
         except IndexError:
@@ -285,7 +289,7 @@ class Gitbook2PDF():
 
 
 if __name__ == '__main__':
-    Gitbook2PDF("http://self-publishing.ebookchain.org").run()
-    # Gitbook2PDF("https://feisky.xyz/kubernetes-handbook/").run()
+    # Gitbook2PDF("http://self-publishing.ebookchain.org").run()
+    Gitbook2PDF("https://feisky.xyz/kubernetes-handbook/").run()
     # url = sys.argv[1]
     # Gitbook2PDF(url).run()
