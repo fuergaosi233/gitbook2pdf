@@ -105,6 +105,67 @@ class ChapterParser():
                 break
         return context
 
+class indexParser():
+    def __init__(self,lis,start_url):
+        self.lis = lis
+        self.start_url = start_url
+
+    @classmethod
+    def titleparse(cls,li):
+        firstchildren = li.getchildren()[0]
+        primeval_title=''.join(firstchildren.itertext())
+        title = ' '.join(primeval_title.split())
+        return title
+
+    def parse(self):
+        found_urls = []
+        content_urls = []
+        for li in self.lis:
+            element_class = li.attrib.get('class')
+            if not element_class:
+                continue
+            if 'header' in element_class:
+                title = self.titleparse(li)
+                data_level = li.attrib.get('data-level')
+                level = len(data_level.split('.')) if data_level else 1
+                content_urls.append({
+                    'url': "",
+                    'level': level,
+                    'title': title
+                })
+            elif "chapter" in element_class:
+                data_level = li.attrib.get('data-level')
+                level = len(data_level.split('.'))
+                if 'data-path' in li.attrib:
+                    data_path = li.attrib.get('data-path')
+                    url = urljoin(self.start_url, data_path)
+                    title = self.titleparse(li)
+                    if url not in found_urls:
+                        content_urls.append(
+                            {
+                                'url': url,
+                                'level': level,
+                                'title': title
+                            }
+                        )
+                        found_urls.append(url)
+
+                # Unclickable link
+                else:
+
+                    # 一种获取方式 : http://self-publishing.ebookchain.org/
+                    if li.find('span'):
+                        title = self.titleparse(li)
+                    elif len(li.contents) == 1:
+                        # 只有一个子节点，也就是文字
+                        title = self.titleparse(li)
+
+                    content_urls.append({
+                        'url': "",
+                        'level': level,
+                        'title': title
+                    })
+        return content_urls
 
 class Gitbook2PDF():
     def __init__(self, base_url, fname=None):
@@ -231,57 +292,8 @@ class Gitbook2PDF():
         self.meta_list.append(('dcterms.modified', now))
 
         lis = soup.find('ul', class_='summary').find_all('li')
-        found_urls = []
-        content_urls = []
-        for li in lis:
-            element_class = li.attrs.get('class')
-            if not element_class:
-                continue
-
-            if 'header' in element_class:
-                title = ' '.join(li.text.split())
-                data_level = li.attrs.get('data-level')
-                level = len(data_level.split('.')) if data_level else 1
-                content_urls.append({
-                    'url': "",
-                    'level': level,
-                    'title': title
-                })
-
-            elif "chapter" in element_class:
-                data_level = li.attrs.get('data-level')
-                level = len(data_level.split('.'))
-                if 'data-path' in li.attrs:
-                    data_path = li.attrs.get('data-path')
-                    url = urljoin(start_url, data_path)
-                    title = ' '.join(li.find('a').text.split())
-                    if url not in found_urls:
-                        content_urls.append(
-                            {
-                                'url': url,
-                                'level': level,
-                                'title': title
-                            }
-                        )
-                        found_urls.append(url)
-
-                # 点击不了的链接
-                else:
-
-                    # 一种获取方式 : http://self-publishing.ebookchain.org/
-                    if li.find('span'):
-                        title = ' '.join(li.find('span').text.split())
-                    elif len(li.contents) == 1:
-                        # 只有一个子节点，也就是文字
-                        title = ' '.join(li.text.split())
-
-                    content_urls.append({
-                        'url': "",
-                        'level': level,
-                        'title': title
-                    })
-
-        return content_urls
+        lis = ET.HTML(text).xpath("//ul[@class='summary']//li")
+        return indexParser(lis,start_url).parse()
 
 
 if __name__ == '__main__':
