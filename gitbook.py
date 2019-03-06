@@ -8,7 +8,7 @@ import os
 import re
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
-from lxml import etree
+from lxml import etree as ET
 import sys
 
 
@@ -20,7 +20,7 @@ async def request(url, headers, timeout=None):
 
 def local_ua_stylesheets(self):
     return [weasyprint.CSS('./html5_ua.css')]
-
+# weasyprint's monkey patch for level
 
 def load_gitbook_css():
     with open('gitbook.css', 'r') as f:
@@ -76,8 +76,34 @@ class HtmlGenerator():
     def output(self):
         full_html = self.html_start + self.title_ele + "".join(self.meta_list) \
                     + "<body>" + self.body + self.html_end
-
         return self.relative_to_absolute_path(full_html)
+
+class ChapterParser():
+    def __init__(self,original,baselevel=0):
+        self.heads={'h1':1,'h2':2,'h3':3,'h4':4,'h5':5,'h6':6}
+        self.original = original
+        self.baselevel = baselevel
+        self.parser()
+    def parser(self):
+        tree = ET.HTML(self.original)
+        if tree.xpath('//section[@class="normal markdown-section"]'):
+            context = tree.xpath('//section[@class="normal markdown-section"]')[0]
+        else:
+            context = tree.xpath('//section[@class="normal"]')[0]
+        if context.find('footer'):
+            context.remove(context.find('footer'))
+        context=self.parsehead(context)
+        self.text = html.unescape(ET.tostring(context).decode())
+
+    def parsehead(self,context):
+        def level(num):
+            return 'level'+str(num)
+        for head in self.heads:
+            if context.xpath(head):
+                context.xpath(head)[0].attrib['class'] = level(self.heads[head]+self.baselevel)
+                self.head = context.xpath(head)[0].attrib['id']
+                break
+        return context
 
 
 class Gitbook2PDF():
@@ -88,7 +114,6 @@ class Gitbook2PDF():
             'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
         }
         self.content_list = []
-        self.heads = {'h1': 1, 'h2': 2, 'h3': 3, 'h4': 4, 'h5': 5, 'h6': 6}
         self.meta_list = []
         self.meta_list.append(
             ('generator', 'gitbook2pdf')
@@ -144,23 +169,8 @@ class Gitbook2PDF():
         except Exception as e:
             print("retrying : ", url)
             metatext = await request(url, self.headers)
-
-        tree = etree.HTML(metatext)
         try:
-            if tree.xpath('//section[@class="normal markdown-section"]'):
-                context = tree.xpath('//section[@class="normal markdown-section"]')[0]
-            elif tree.xpath('//section[@class="normal"]'):
-                context = tree.xpath('//section[@class="normal"]')[0]
-            if context.find('footer'):
-                context.remove(context.find('footer'))
-            for header in self.heads:
-                if context.xpath(header):
-                    context.xpath(header)[0].attrib['class'] = get_level_class(level)
-                    context.xpath(header)[0].text = title
-                    break
-
-            text = etree.tostring(context).decode()
-            text = html.unescape(text)
+            text = ChapterParser(metatext).text
             print("done : ", url)
             self.content_list[index] = text
         except IndexError:
@@ -273,7 +283,7 @@ class Gitbook2PDF():
 
 
 if __name__ == '__main__':
-    # Gitbook2PDF("http://self-publishing.ebookchain.org").run()
+    Gitbook2PDF("http://self-publishing.ebookchain.org").run()
     # Gitbook2PDF("https://feisky.xyz/kubernetes-handbook/").run()
-    url = sys.argv[1]
-    Gitbook2PDF(url).run()
+    # url = sys.argv[1]
+    # Gitbook2PDF(url).run()
