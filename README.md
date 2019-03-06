@@ -6,9 +6,9 @@ simple but powerful tools for converting gitbook pages to pdf.
 
 ## todolist
 
--[ ] 优化目录结构
--[ ] 使用分布式加速pdf生成
--[ ] 支持更多格式，比如mobi，equb
+- [ ] 优化目录结构
+- [ ] 使用分布式加速pdf生成
+- [ ] 支持更多格式，比如mobi，equb
 
 
 ## feature
