@@ -4,7 +4,6 @@ import asyncio
 import aiohttp
 import weasyprint
 import datetime
-import os
 import re
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
@@ -109,16 +108,21 @@ class ChapterParser():
                 break
         return context
 
-class indexParser():
-    def __init__(self,lis,start_url):
+
+class IndexParser():
+    def __init__(self, lis, start_url):
         self.lis = lis
         self.start_url = start_url
 
     @classmethod
-    def titleparse(cls,li):
-        firstchildren = li.getchildren()[0]
-        primeval_title=''.join(firstchildren.itertext())
-        title = ' '.join(primeval_title.split())
+    def titleparse(cls, li):
+        children = li.getchildren()
+        if len(children) != 0:
+            firstchildren = children[0]
+            primeval_title = ''.join(firstchildren.itertext())
+            title = ' '.join(primeval_title.split())
+        else:
+            title = li.text
         return title
 
     def parse(self):
@@ -156,20 +160,14 @@ class indexParser():
 
                 # Unclickable link
                 else:
-
-                    # 一种获取方式 : http://self-publishing.ebookchain.org/
-                    if li.find('span'):
-                        title = self.titleparse(li)
-                    elif len(li.contents) == 1:
-                        # 只有一个子节点，也就是文字
-                        title = self.titleparse(li)
-
+                    title = self.titleparse(li)
                     content_urls.append({
                         'url': "",
                         'level': level,
                         'title': title
                     })
         return content_urls
+
 
 class Gitbook2PDF():
     def __init__(self, base_url, fname=None):
@@ -295,9 +293,9 @@ class Gitbook2PDF():
         self.meta_list.append(('dcterms.created', now))
         self.meta_list.append(('dcterms.modified', now))
 
-        lis = soup.find('ul', class_='summary').find_all('li')
+        # lis = soup.find('ul', class_='summary').find_all('li')
         lis = ET.HTML(text).xpath("//ul[@class='summary']//li")
-        return indexParser(lis,start_url).parse()
+        return IndexParser(lis, start_url).parse()
 
 
 if __name__ == '__main__':
