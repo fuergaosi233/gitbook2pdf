@@ -31,7 +31,7 @@ simple but powerful tools for converting gitbook pages to pdf.
 
 [weastprint安装](https://weasyprint.readthedocs.io/en/latest/install.html#linux)
 ```python
-pip isntall reqirements.txt   
+pip install reqirements.txt   
 ```
 ### 运行脚本
 ```python
