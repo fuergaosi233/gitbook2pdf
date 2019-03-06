@@ -183,7 +183,9 @@ class Gitbook2PDF():
         htmlname = fname.replace('.pdf', '.html')
         with open(htmlname, 'w', encoding='utf-8') as f:
             f.write(html_text)
+        print('Generating pdf,please wait patiently')
         tmphtml.write_pdf(fname, stylesheets=[tmpcss])
+        print('Generated')
 
     def collect_urls_and_metadata(self, start_url):
         text = requests.get(start_url, headers=self.headers).text
