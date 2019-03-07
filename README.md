@@ -18,7 +18,7 @@ simple but powerful tools for converting gitbook pages to pdf.
 - 文本可复制
 
 ![](./screenshots/copy-feature.png)
-- 
+- 保持原目录结构
 ![](./screenshots/index.png)
 
 - 保留原文链接
