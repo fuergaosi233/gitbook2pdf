@@ -40,4 +40,4 @@ python gitbook.py
 
 ## 示例文件
 
-[KubernetesHandbook.pdf](http://cdn1.xhyuan.co/KubernetesHandbook.pdf)
+[KubernetesHandbook.pdf](http://cdn2.xhyuan.co/KubernetesHandbook.pdf)
