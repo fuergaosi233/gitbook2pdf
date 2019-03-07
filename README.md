@@ -15,10 +15,9 @@ simple but powerful tools for converting gitbook pages to pdf.
 使用`aiohttp`抓取 
 对于网站内容抓取基本秒速完成
 
-- 文本可复制
-
+- 文本可复制  
 ![](./screenshots/copy-feature.png)
-- 保持原目录结构
+- 保持原目录结构  
 ![](./screenshots/index.png)
 
 - 保留原文链接
