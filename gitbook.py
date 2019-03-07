@@ -92,7 +92,7 @@ class ChapterParser():
             context = tree.xpath('//section[@class="normal markdown-section"]')[0]
         else:
             context = tree.xpath('//section[@class="normal"]')[0]
-        if context.find('footer'):
+        if len(context.find('footer')):
             context.remove(context.find('footer'))
         context = self.parsehead(context)
         return html.unescape(ET.tostring(context).decode())
@@ -215,10 +215,7 @@ class Gitbook2PDF():
     async def getext_fake(self, index, title, level):
         await asyncio.sleep(0.01)
         class_ = get_level_class(level)
-        string = "<h1 class='{class}'>{title}</h1>".format_map({
-            'class': class_,
-            'title': title
-        })
+        string = f"<h1 class='{class_}'>{title}</h1>"
         self.content_list[index] = string
 
     async def gettext(self, index, url, level):
@@ -254,7 +251,7 @@ class Gitbook2PDF():
         text = requests.get(start_url, headers=self.headers).text
         soup = BeautifulSoup(text, 'html.parser')
 
-        # 如果不提供输出文件名的话，抓取html标题为文件名
+        # If the output file name is not provided, grab the html title as the file name.
         if not self.fname:
             title_ele = soup.find('title')
             if title_ele:
@@ -292,8 +289,6 @@ class Gitbook2PDF():
         now = datetime.datetime.utcnow().replace(microsecond=0).isoformat()
         self.meta_list.append(('dcterms.created', now))
         self.meta_list.append(('dcterms.modified', now))
-
-        # lis = soup.find('ul', class_='summary').find_all('li')
         lis = ET.HTML(text).xpath("//ul[@class='summary']//li")
         return IndexParser(lis, start_url).parse()
 
