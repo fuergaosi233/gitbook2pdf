@@ -38,9 +38,15 @@ pip install -r requirements.txt
 ```
 ### 运行脚本
 ```python
-python gitbook.py
+python gitbook.py "url"
+#demo:
+python gitbook.py http://self-publishing.ebookchain.org
 ```
 
 ## 示例文件
 
 [KubernetesHandbook.pdf](http://cdn1.xhyuan.co/KubernetesHandbook.pdf)
+
+## 注意
+使用`weasyprint`生成`pdf`文件会比较吃内存  
+请注意自己的内存空间是否够用  

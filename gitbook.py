@@ -92,7 +92,7 @@ class ChapterParser():
             context = tree.xpath('//section[@class="normal markdown-section"]')[0]
         else:
             context = tree.xpath('//section[@class="normal"]')[0]
-        if len(context.find('footer')):
+        if context.find('footer'):
             context.remove(context.find('footer'))
         context = self.parsehead(context)
         return html.unescape(ET.tostring(context).decode())
@@ -294,7 +294,5 @@ class Gitbook2PDF():
 
 
 if __name__ == '__main__':
-    # Gitbook2PDF("http://self-publishing.ebookchain.org").run()
-    Gitbook2PDF("https://feisky.xyz/kubernetes-handbook/").run()
-    # url = sys.argv[1]
-    # Gitbook2PDF(url).run()
+    url = sys.argv[1]
+    Gitbook2PDF(url).run()
