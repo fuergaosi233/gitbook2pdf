@@ -45,7 +45,7 @@ python gitbook.py http://self-publishing.ebookchain.org
 
 ## 示例文件
 
-[KubernetesHandbook.pdf](http://cdn1.xhyuan.co/KubernetesHandbook.pdf)
+[KubernetesHandbook.pdf](http://cdn2.xhyuan.co/KubernetesHandbook.pdf)
 
 ## 注意
 使用`weasyprint`生成`pdf`文件会比较吃内存  
