@@ -248,7 +248,10 @@ class Gitbook2PDF():
         print('Generated')
 
     def collect_urls_and_metadata(self, start_url):
-        text = requests.get(start_url, headers=self.headers).text
+        response = requests.get(start_url, headers=self.headers)
+        self.base_url = response.url
+        start_url = response.url
+        text = response.text
         soup = BeautifulSoup(text, 'html.parser')
 
         # If the output file name is not provided, grab the html title as the file name.
