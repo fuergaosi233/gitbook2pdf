@@ -81,10 +81,11 @@ class HtmlGenerator():
 
 
 class ChapterParser():
-    def __init__(self, original, baselevel=0):
+    def __init__(self, original,index_title, baselevel=0):
         self.heads = {'h1': 1, 'h2': 2, 'h3': 3, 'h4': 4, 'h5': 5, 'h6': 6}
         self.original = original
         self.baselevel = baselevel
+        self.index_title = index_title
 
     def parser(self):
         tree = ET.HTML(self.original)
@@ -100,10 +101,9 @@ class ChapterParser():
     def parsehead(self, context):
         def level(num):
             return 'level' + str(num)
-
         for head in self.heads:
             if context.xpath(head):
-                context.xpath(head)[0].attrib['class'] = level(self.heads[head] + self.baselevel)
+                context.xpath(head)[0].attrib['class'] = level(self.baselevel)
                 self.head = context.xpath(head)[0].attrib['id']
                 break
         return context
@@ -206,7 +206,7 @@ class Gitbook2PDF():
         tasks = []
         for index, urlobj in enumerate(content_urls):
             if urlobj['url']:
-                tasks.append(self.gettext(index, urlobj['url'], urlobj['level']))
+                tasks.append(self.gettext(index, urlobj['url'], urlobj['level'],urlobj['title']))
             else:
                 tasks.append(self.getext_fake(index, urlobj['title'], urlobj['level']))
         await asyncio.gather(*tasks)
@@ -218,7 +218,7 @@ class Gitbook2PDF():
         string = f"<h1 class='{class_}'>{title}</h1>"
         self.content_list[index] = string
 
-    async def gettext(self, index, url, level):
+    async def gettext(self, index, url, level, title):
         '''
         return path's html
         '''
@@ -230,7 +230,7 @@ class Gitbook2PDF():
             print("retrying : ", url)
             metatext = await request(url, self.headers)
         try:
-            text = ChapterParser(metatext, level).parser()
+            text = ChapterParser(metatext, level, title).parser()
             print("done : ", url)
             self.content_list[index] = text
         except IndexError:
