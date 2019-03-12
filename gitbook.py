@@ -103,8 +103,10 @@ class ChapterParser():
             return 'level' + str(num)
         for head in self.heads:
             if context.xpath(head):
+                self.head = context.xpath(head)[0].text
+                if self.head in self.index_title:
+                    context.xpath(head)[0].text = self.index_title
                 context.xpath(head)[0].attrib['class'] = level(self.baselevel)
-                self.head = context.xpath(head)[0].attrib['id']
                 break
         return context
 
@@ -230,7 +232,7 @@ class Gitbook2PDF():
             print("retrying : ", url)
             metatext = await request(url, self.headers)
         try:
-            text = ChapterParser(metatext, level, title).parser()
+            text = ChapterParser(metatext, title, level, ).parser()
             print("done : ", url)
             self.content_list[index] = text
         except IndexError:
