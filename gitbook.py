@@ -103,7 +103,7 @@ class ChapterParser():
             return 'level' + str(num)
         for head in self.heads:
             if context.xpath(head):
-                self.head = context.xpath(head)[0].text
+                self.head = IndexParser.titleparse(context.xpath(head)[0])
                 if self.head in self.index_title:
                     context.xpath(head)[0].text = self.index_title
                 context.xpath(head)[0].attrib['class'] = level(self.baselevel)
