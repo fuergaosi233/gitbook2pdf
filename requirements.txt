@@ -15,7 +15,7 @@ html5lib==1.0.1
 idna==2.8
 lxml==4.3.2
 multidict==4.5.2
-Pillow==5.4.1
+Pillow==6.2.0
 post==2019.4.13
 public==2019.4.13
 pycparser==2.19
