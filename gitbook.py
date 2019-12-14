@@ -66,8 +66,11 @@ class HtmlGenerator():
     def srcrepl(self, match):
         "Return the file contents with paths replaced"
         absolutePath = self.base_url
-        return "<" + match.group(1) + match.group(2) + "=" + "\"" + absolutePath + match.group(3) + match.group(
-            4) + "\"" + ">"
+        pathStr = match.group(3)
+        if pathStr.startswith(".."):
+            pathStr = pathStr[3:]
+        return "<" + match.group(1) + match.group(2) + "=" + "\"" + absolutePath + pathStr + "\"" + match.group(
+            4)  + ">"
 
     def relative_to_absolute_path(self, origin_text):
         p = re.compile(r"<(.*?)(src|href)=\"(?!http)(.*?)\"(.*?)>")
