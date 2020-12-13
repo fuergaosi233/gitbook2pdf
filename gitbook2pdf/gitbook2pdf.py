@@ -9,7 +9,8 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from lxml import etree as ET
 import sys
-
+import os
+BASE_DIR = os.path.dirname(__file__)
 
 async def request(url, headers, timeout=None):
     async with aiohttp.ClientSession() as session:
@@ -18,13 +19,15 @@ async def request(url, headers, timeout=None):
 
 
 def local_ua_stylesheets(self):
-    return [weasyprint.CSS('./html5_ua.css')]
+    return [weasyprint.CSS(os.path.join(BASE_DIR, './libs/html5_ua.css'))]
 
 
 # weasyprint's monkey patch for level
 
 def load_gitbook_css():
-    with open('gitbook.css', 'r') as f:
+    with open(
+        os.path.join(BASE_DIR, './libs/gitbook.css'), 'r'
+    ) as f:
         return f.read()
 
 
