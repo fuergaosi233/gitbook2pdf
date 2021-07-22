@@ -20,8 +20,11 @@
   Can be in a few seconds the data capture.
 
 - Grab the text can be replicated
+  
   ![](./screenshots/copy-feature.png)
+  
 - Save the original directory structure
+  
   ![](./screenshots/index.png)
 
 - Retain the original hyperlinks
