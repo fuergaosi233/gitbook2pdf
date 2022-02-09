@@ -72,7 +72,7 @@ class HtmlGenerator():
         pathStr = match.group(3)
         if pathStr.startswith(".."):
             pathStr = pathStr[3:]
-        return "<" + match.group(1) + match.group(2) + "=" + "\"" + absolutePath + pathStr + "\"" + match.group(
+        return "<" + match.group(1) + match.group(2) + "=" + "\"" + urljoin(absolutePath, pathStr) + "\"" + match.group(
             4)  + ">"
 
     def relative_to_absolute_path(self, origin_text):
