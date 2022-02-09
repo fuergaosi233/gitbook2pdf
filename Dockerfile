@@ -5,7 +5,8 @@ deb http://mirrors.ustc.edu.cn/debian stable-updates main contrib non-free \
 deb http://mirrors.ustc.edu.cn/debian-security stable-security main contrib non-free""" > /etc/apt/sources.list
 
 RUN apt update \
-    && apt-get install -y ttf-mscorefonts-installer fontconfig
+    && apt-get install -y ttf-mscorefonts-installer fontconfig \
+    && apt-get install ttf-wqy-microhei ttf-wqy-zenhei
 
 ENV LANG=zh_CN.UTF-8 LANGUAGE=zh_CN.UTF-8 
 
