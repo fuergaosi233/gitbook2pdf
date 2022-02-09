@@ -38,7 +38,7 @@ def get_level_class(num):
     return 'level' + str(num)
 
 
-class HtmlGenerator():
+class exiHtmlGenerator():
     def __init__(self, base_url):
         self.html_start = """
 <!DOCTYPE html>
@@ -189,7 +189,7 @@ class Gitbook2PDF():
         self.meta_list.append(
             ('generator', 'gitbook2pdf')
         )
-        weasyprint.HTML._ua_stylesheets = local_ua_stylesheets
+        # weasyprint.HTML._ua_stylesheets = local_ua_stylesheets
 
     def run(self):
         content_urls = self.collect_urls_and_metadata(self.base_url)
