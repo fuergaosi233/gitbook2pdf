@@ -38,7 +38,7 @@ def get_level_class(num):
     return 'level' + str(num)
 
 
-class exiHtmlGenerator():
+class HtmlGenerator():
     def __init__(self, base_url):
         self.html_start = """
 <!DOCTYPE html>
