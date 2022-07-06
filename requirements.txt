@@ -10,7 +10,7 @@ cssselect2==0.2.1
 defusedxml==0.5.0
 html5lib==1.0.1
 idna==2.8
-lxml==4.6.5
+lxml==4.9.1
 multidict==4.5.2
 Pillow==8.2.0
 pycparser==2.19
