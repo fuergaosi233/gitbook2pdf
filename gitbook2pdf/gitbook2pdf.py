@@ -72,7 +72,7 @@ class HtmlGenerator():
         pathStr = match.group(3)
         if pathStr.startswith(".."):
             pathStr = pathStr[3:]
-        return "<" + match.group(1) + match.group(2) + "=" + "\"" + absolutePath + pathStr + "\"" + match.group(
+        return "<" + match.group(1) + match.group(2) + "=" + "\"" + urljoin(absolutePath, pathStr) + "\"" + match.group(
             4)  + ">"
 
     def relative_to_absolute_path(self, origin_text):
@@ -189,7 +189,7 @@ class Gitbook2PDF():
         self.meta_list.append(
             ('generator', 'gitbook2pdf')
         )
-        weasyprint.HTML._ua_stylesheets = local_ua_stylesheets
+        # weasyprint.HTML._ua_stylesheets = local_ua_stylesheets
 
     def run(self):
         content_urls = self.collect_urls_and_metadata(self.base_url)
